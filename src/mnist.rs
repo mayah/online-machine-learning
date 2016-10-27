@@ -8,7 +8,7 @@ use std::vec::Vec;
 // MNIST webpage is here: http://yann.lecun.com/exdb/mnist/
 
 pub struct MNist {
-    pub data: [u8; 28 * 28],
+    pub data: [f32; 28 * 28],
     pub label: i32,
 }
 
@@ -55,8 +55,12 @@ pub fn read_mnist_image_label(image_file_name: &str, label_file_name: &str) -> i
         for i in 0 .. num_elems {
             let mut buf: [u8; 28 * 28] = [0; 28 * 28];
             try!(f.read_exact(&mut buf));
+            let mut data: [f32; 28 * 28] = [0.0; 28 * 28];
+            for j in 0 .. 28 * 28 {
+                data[j] = (buf[j] as f32) / 255.0
+            }
             res.push(MNist {
-                data: buf,
+                data: data,
                 label: labels[i],
             });
         }
