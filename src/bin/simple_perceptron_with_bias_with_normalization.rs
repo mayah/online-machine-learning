@@ -2,15 +2,15 @@ extern crate rand;
 extern crate online_machine_learning;
 
 use online_machine_learning::linear_classifier::LinearClassifier;
-use online_machine_learning::perceptron::Perceptron;
 use online_machine_learning::mnist;
+use online_machine_learning::perceptron::Perceptron;
 use rand::Rng;
 
 fn train(ith: usize, perceptrons: &mut [Perceptron], train_data: &[mnist::MNist]) {
     let mut correct = 0;
     let mut wrong = 0;
     for td in train_data.iter() {
-        for i in 0..10 {
+        for i in 0 .. 10 {
             if perceptrons[i].learn(&td.data, (td.label as usize) == i, 0.001) {
                 correct += 1;
             } else {
@@ -30,7 +30,7 @@ fn run_test(perceptrons: &[Perceptron], test_data: &[mnist::MNist]) {
     for td in test_data.iter() {
         let mut result_index = 0;
         let mut result_confidence = perceptrons[0].margin(&td.data);
-        for i in 1..10 {
+        for i in 1 .. 10 {
             let confidence = perceptrons[i].margin(&td.data);
             if confidence > result_confidence {
                 result_index = i as i32;
@@ -47,9 +47,9 @@ fn run_test(perceptrons: &[Perceptron], test_data: &[mnist::MNist]) {
     }
 
     println!(" TEST: correct={} wrong={}", correct, wrong);
-    for i in 0..10 {
+    for i in 0 .. 10 {
         let mut sum = 0;
-        for j in 0..10 {
+        for j in 0 .. 10 {
             sum += matrix[i][j];
             print!("{:>6} ", matrix[i][j]);
         }
@@ -70,21 +70,42 @@ pub fn main() {
     println!(" test image_file: {}", &args[3]);
     println!(" test label_file: {}", &args[4]);
 
-    let mut train_data = mnist::read_mnist_image_label(&args[1], &args[2]).unwrap();
+    let mut train_data = mnist::read_mnist_image_label_with_bias(&args[1], &args[2]).unwrap();
     println!("train data read ok");
 
     rand::thread_rng().shuffle(&mut train_data);
     println!("train data is shuffled");
 
-    let test_data = mnist::read_mnist_image_label(&args[3], &args[4]).unwrap();
+    let mut test_data = mnist::read_mnist_image_label_with_bias(&args[3], &args[4]).unwrap();
     println!("test data read ok");
 
-    let mut perceptrons = std::vec::Vec::new();
-    for _ in 0..10 {
-        perceptrons.push(Perceptron::new(28 * 28));
+    // normalize data
+    let mut ave = [0.0; 28 * 28];
+    for td in &train_data {
+        for i in 0..28*28 {
+            ave[i] += td.data[i];
+        }
+    }
+    for i in 0..28*28 {
+        ave[i] /= train_data.len() as f32;
+    }
+    for td in &mut train_data {
+        for i in 0..28*28 {
+            td.data[i] -= ave[i];
+        }
+    }
+    for td in &mut test_data {
+        for i in 0..28*28 {
+            td.data[i] -= ave[i];
+        }
     }
 
-    for cnt in 0..100 {
+    let mut perceptrons = std::vec::Vec::new();
+    for _ in 0 .. 10 {
+        perceptrons.push(Perceptron::new(28 * 28 + 1));
+    }
+
+    for cnt in 0 .. 100 {
         if cnt % 5 == 0 {
             run_test(&perceptrons, &test_data)
         }

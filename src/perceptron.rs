@@ -1,5 +1,6 @@
 //! perceptron
 
+use linear_classifier::LinearClassifier;
 use std::vec::Vec;
 
 pub struct Perceptron {
@@ -12,11 +13,10 @@ impl Perceptron {
             weight: vec![0.0; size],
         }
     }
+}
 
-    /// Learn data with label.
-    /// If the current Perceptron can predict the result correctly, true is returned.
-    /// Otherwise, false is returned.
-    pub fn learn(&mut self, data: &[f32], label: bool, eta: f32) -> bool {
+impl LinearClassifier for Perceptron {
+    fn learn(&mut self, data: &[f32], label: bool, eta: f32) -> bool {
         assert_eq!(self.weight.len(), data.len());
 
         let lb = if label { 1.0 } else { -1.0 };
@@ -37,8 +37,7 @@ impl Perceptron {
         false
     }
 
-    /// Returns how much the data is considered as positive class.
-    pub fn predict(&self, data: &[f32]) -> f32 {
+    fn margin(&self, data: &[f32]) -> f32 {
         assert_eq!(self.weight.len(), data.len());
 
         let mut ip = 0.0;

@@ -1,8 +1,9 @@
 extern crate rand;
 extern crate online_machine_learning;
 
-use online_machine_learning::perceptron::Perceptron;
+use online_machine_learning::linear_classifier::LinearClassifier;
 use online_machine_learning::mnist;
+use online_machine_learning::perceptron::Perceptron;
 use rand::Rng;
 
 fn train(ith: usize, perceptrons: &mut [Perceptron], train_data: &[mnist::MNist]) {
@@ -28,9 +29,9 @@ fn run_test(perceptrons: &[Perceptron], test_data: &[mnist::MNist]) {
 
     for td in test_data.iter() {
         let mut result_index = 0;
-        let mut result_confidence = perceptrons[0].predict(&td.data);
+        let mut result_confidence = perceptrons[0].margin(&td.data);
         for i in 1..10 {
-            let confidence = perceptrons[i].predict(&td.data);
+            let confidence = perceptrons[i].margin(&td.data);
             if confidence > result_confidence {
                 result_index = i as i32;
                 result_confidence = confidence;
