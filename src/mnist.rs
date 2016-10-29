@@ -8,11 +8,20 @@ use std::vec::Vec;
 // MNIST webpage is here: http://yann.lecun.com/exdb/mnist/
 
 pub struct MNist {
-    pub data: [f32; 28 * 28],
+    pub data: Vec<f32>,
     pub label: i32,
 }
 
 pub fn read_mnist_image_label(image_file_name: &str, label_file_name: &str) -> io::Result<Vec<MNist>> {
+    read_mnist(image_file_name, label_file_name, false)
+}
+
+pub fn read_mnist_image_label_with_bias(image_file_name: &str, label_file_name: &str) -> io::Result<Vec<MNist>> {
+    read_mnist(image_file_name, label_file_name, true)
+}
+
+/// Reads mnist data. When appends_bias is true, 1.0 is appended in the last of data.
+fn read_mnist(image_file_name: &str, label_file_name: &str, appends_bias: bool) -> io::Result<Vec<MNist>> {
     let mut res = Vec::<MNist>::new();
 
     // read labels
@@ -55,14 +64,17 @@ pub fn read_mnist_image_label(image_file_name: &str, label_file_name: &str) -> i
         for i in 0 .. num_elems {
             let mut buf: [u8; 28 * 28] = [0; 28 * 28];
             try!(f.read_exact(&mut buf));
-            let mut data: [f32; 28 * 28] = [0.0; 28 * 28];
-            for j in 0 .. 28 * 28 {
-                data[j] = (buf[j] as f32) / 255.0
-            }
-            res.push(MNist {
-                data: data,
+            let mut mnist = MNist {
+                data: Vec::<f32>::with_capacity(if appends_bias { 28 * 28 + 1 } else { 28 * 28 }),
                 label: labels[i],
-            });
+            };
+            for j in 0 .. 28 * 28 {
+                mnist.data.push((buf[j] as f32) / 255.0);
+            }
+            if appends_bias {
+                mnist.data.push(1.0);
+            }
+            res.push(mnist);
         }
     }
 

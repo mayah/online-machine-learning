@@ -9,7 +9,7 @@ pub struct Perceptron {
 impl Perceptron {
     pub fn new(size: usize) -> Perceptron {
         Perceptron {
-            weight: vec![0.0; size]
+            weight: vec![0.0; size],
         }
     }
 
@@ -33,6 +33,7 @@ impl Perceptron {
         for i in 0 .. self.weight.len() {
             self.weight[i] += data[i] * lb * eta;
         }
+
         false
     }
 
