@@ -61,14 +61,14 @@ fn read_mnist(image_file_name: &str, label_file_name: &str, appends_bias: bool) 
         let col = try!(f.read_u32::<BigEndian>()) as usize;
         assert!(col == 28);
 
-        for i in 0 .. num_elems {
+        for i in 0..num_elems {
             let mut buf: [u8; 28 * 28] = [0; 28 * 28];
             try!(f.read_exact(&mut buf));
             let mut mnist = MNist {
                 data: Vec::<f32>::with_capacity(if appends_bias { 28 * 28 + 1 } else { 28 * 28 }),
                 label: labels[i],
             };
-            for j in 0 .. 28 * 28 {
+            for j in 0..28 * 28 {
                 mnist.data.push((buf[j] as f32) / 255.0);
             }
             if appends_bias {

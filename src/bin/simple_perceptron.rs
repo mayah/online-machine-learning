@@ -9,7 +9,7 @@ fn train(ith: usize, perceptrons: &mut [Perceptron], train_data: &[mnist::MNist]
     let mut correct = 0;
     let mut wrong = 0;
     for td in train_data.iter() {
-        for i in 0 .. 10 {
+        for i in 0..10 {
             if perceptrons[i].learn(&td.data, (td.label as usize) == i, 0.001) {
                 correct += 1;
             } else {
@@ -29,7 +29,7 @@ fn run_test(perceptrons: &[Perceptron], test_data: &[mnist::MNist]) {
     for td in test_data.iter() {
         let mut result_index = 0;
         let mut result_confidence = perceptrons[0].predict(&td.data);
-        for i in 1 .. 10 {
+        for i in 1..10 {
             let confidence = perceptrons[i].predict(&td.data);
             if confidence > result_confidence {
                 result_index = i as i32;
@@ -46,9 +46,9 @@ fn run_test(perceptrons: &[Perceptron], test_data: &[mnist::MNist]) {
     }
 
     println!(" TEST: correct={} wrong={}", correct, wrong);
-    for i in 0 .. 10 {
+    for i in 0..10 {
         let mut sum = 0;
-        for j in 0 .. 10 {
+        for j in 0..10 {
             sum += matrix[i][j];
             print!("{:>6} ", matrix[i][j]);
         }
@@ -79,11 +79,11 @@ pub fn main() {
     println!("test data read ok");
 
     let mut perceptrons = std::vec::Vec::new();
-    for _ in 0 .. 10 {
+    for _ in 0..10 {
         perceptrons.push(Perceptron::new(28 * 28));
     }
 
-    for cnt in 0 .. 100 {
+    for cnt in 0..100 {
         if cnt % 5 == 0 {
             run_test(&perceptrons, &test_data)
         }

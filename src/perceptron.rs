@@ -22,15 +22,15 @@ impl Perceptron {
         let lb = if label { 1.0 } else { -1.0 };
 
         let mut ip = 0.0;
-        for i in 0 .. self.weight.len() {
+        for i in 0..self.weight.len() {
             ip += self.weight[i] * data[i];
         }
 
         if ip * lb > 0.0 {
-            return true
+            return true;
         }
 
-        for i in 0 .. self.weight.len() {
+        for i in 0..self.weight.len() {
             self.weight[i] += data[i] * lb * eta;
         }
 
@@ -42,7 +42,7 @@ impl Perceptron {
         assert_eq!(self.weight.len(), data.len());
 
         let mut ip = 0.0;
-        for i in 0 .. self.weight.len() {
+        for i in 0..self.weight.len() {
             ip += self.weight[i] * data[i];
         }
 
