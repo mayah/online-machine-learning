@@ -5,4 +5,5 @@ authors = ["mayah"]
 
 [dependencies]
 byteorder = "*"
+getopts = "^0.2"
 rand = "*"

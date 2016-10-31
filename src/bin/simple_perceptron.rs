@@ -1,6 +1,8 @@
 extern crate rand;
 extern crate online_machine_learning;
+extern crate getopts;
 
+use getopts::Options;
 use online_machine_learning::linear_classifier::LinearClassifier;
 use online_machine_learning::perceptron::Perceptron;
 use online_machine_learning::mnist;
@@ -58,30 +60,82 @@ fn run_test(perceptrons: &[Perceptron], test_data: &[mnist::MNist]) {
     }
 }
 
+fn normalize_train_test(train_data: &mut [mnist::MNist], test_data: &mut [mnist::MNist]) {
+    let mut ave = [0.0; 28 * 28];
+    for td in train_data.iter() {
+        for i in 0..28*28 {
+            ave[i] += td.data[i];
+        }
+    }
+    for i in 0..28*28 {
+        ave[i] /= train_data.len() as f32;
+    }
+    for td in train_data.iter_mut() {
+        for i in 0..28*28 {
+            td.data[i] -= ave[i];
+        }
+    }
+    for td in test_data.iter_mut() {
+        for i in 0..28*28 {
+            td.data[i] -= ave[i];
+        }
+    }
+}
+
 pub fn main() {
     let args: Vec<_> = std::env::args().collect();
-    if args.len() < 5 {
-        println!("{} <train_image_file> <train_label_file> <test_image_file> <test_label_file>", args[0]);
+
+    let mut opts = Options::new();
+    opts.optflag("", "bias", "use bias");
+    opts.optflag("", "normalization", "use normalization");
+
+    let matches = match opts.parse(&args[1..]) {
+        Ok(m) => { m }
+        Err(f) => { panic!(f.to_string()) }
+    };
+
+    let mut uses_bias = false;
+    if matches.opt_present("bias") {
+        uses_bias = true;
+    }
+
+    let mut uses_normalization = false;
+    if matches.opt_present("normalization") {
+        uses_normalization = true;
+    }
+
+    if matches.free.len() < 4 {
+        println!("{} (options...) <train_image_file> <train_label_file> <test_image_file> <test_label_file>", args[0]);
         std::process::exit(1);
     }
 
-    println!("train image_file: {}", &args[1]);
-    println!("train label_file: {}", &args[2]);
-    println!(" test image_file: {}", &args[3]);
-    println!(" test label_file: {}", &args[4]);
+    let train_image_file = matches.free[0].clone();
+    let train_label_file = matches.free[1].clone();
+    let test_image_file = matches.free[2].clone();
+    let test_label_file = matches.free[3].clone();
 
-    let mut train_data = mnist::read_mnist_image_label(&args[1], &args[2]).unwrap();
+    println!("train image_file: {}", train_image_file);
+    println!("train label_file: {}", train_label_file);
+    println!(" test image_file: {}", test_image_file);
+    println!(" test label_file: {}", test_label_file);
+
+    let mut train_data = mnist::read_mnist(&train_image_file, &train_label_file, uses_bias).unwrap();
     println!("train data read ok");
 
     rand::thread_rng().shuffle(&mut train_data);
     println!("train data is shuffled");
 
-    let test_data = mnist::read_mnist_image_label(&args[3], &args[4]).unwrap();
+    let mut test_data = mnist::read_mnist(&test_image_file, &test_label_file, uses_bias).unwrap();
     println!("test data read ok");
+
+    if uses_normalization {
+        normalize_train_test(&mut train_data, &mut test_data);
+    }
 
     let mut perceptrons = std::vec::Vec::new();
     for _ in 0..10 {
-        perceptrons.push(Perceptron::new(28 * 28));
+        let n = (28 * 28) + (if uses_bias { 1 } else { 0 });
+        perceptrons.push(Perceptron::new(n));
     }
 
     for cnt in 0..100 {

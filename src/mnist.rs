@@ -12,16 +12,8 @@ pub struct MNist {
     pub label: i32,
 }
 
-pub fn read_mnist_image_label(image_file_name: &str, label_file_name: &str) -> io::Result<Vec<MNist>> {
-    read_mnist(image_file_name, label_file_name, false)
-}
-
-pub fn read_mnist_image_label_with_bias(image_file_name: &str, label_file_name: &str) -> io::Result<Vec<MNist>> {
-    read_mnist(image_file_name, label_file_name, true)
-}
-
 /// Reads mnist data. When appends_bias is true, 1.0 is appended in the last of data.
-fn read_mnist(image_file_name: &str, label_file_name: &str, appends_bias: bool) -> io::Result<Vec<MNist>> {
+pub fn read_mnist(image_file_name: &str, label_file_name: &str, appends_bias: bool) -> io::Result<Vec<MNist>> {
     let mut res = Vec::<MNist>::new();
 
     // read labels
