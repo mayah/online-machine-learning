@@ -6,6 +6,7 @@ use getopts::Options;
 use online_machine_learning::arow::Arow;
 use online_machine_learning::linear_classifier::LinearClassifier;
 use online_machine_learning::perceptron::Perceptron;
+use online_machine_learning::svm::SVM;
 use online_machine_learning::mnist;
 use rand::Rng;
 use std::boxed::Box;
@@ -90,7 +91,7 @@ pub fn main() {
     let mut opts = Options::new();
     opts.optflag("", "bias", "use bias");
     opts.optflag("", "normalization", "use normalization");
-    opts.optflag("", "arow", "use arow. If not specified, perceptron is used.");
+    opts.optopt("t", "type", "classifier type. perceptron, svm, or arow. default is perceptron", "TYPE");
 
     let matches = match opts.parse(&args[1..]) {
         Ok(m) => { m }
@@ -99,7 +100,7 @@ pub fn main() {
 
     let uses_bias = matches.opt_present("bias");
     let uses_normalization = matches.opt_present("normalization");
-    let uses_arow = matches.opt_present("arow");
+    let classifier_type = matches.opt_str("type").unwrap_or("perceptron".to_owned());
 
     if matches.free.len() < 4 {
         println!("{} (options...) <train_image_file> <train_label_file> <test_image_file> <test_label_file>", args[0]);
@@ -132,11 +133,17 @@ pub fn main() {
     let mut perceptrons = std::vec::Vec::<Box<LinearClassifier>>::new();
     for _ in 0..10 {
         let n = (28 * 28) + (if uses_bias { 1 } else { 0 });
-        if uses_arow {
-            perceptrons.push(Box::new(Arow::new(n)));
-        } else {
-            perceptrons.push(Box::new(Perceptron::new(n)));
-        }
+        let classifier: Box<LinearClassifier> = match classifier_type.as_ref() {
+            "perceptron" => Box::new(Perceptron::new(n)),
+            "arow" => Box::new(Arow::new(n)),
+            "svm" => Box::new(SVM::new(n)),
+            _ => {
+                assert!(false);
+                unreachable!()
+            }
+        };
+
+        perceptrons.push(classifier);
     }
 
     for cnt in 0..100 {
