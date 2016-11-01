@@ -3,12 +3,14 @@ extern crate online_machine_learning;
 extern crate getopts;
 
 use getopts::Options;
+use online_machine_learning::arow::Arow;
 use online_machine_learning::linear_classifier::LinearClassifier;
 use online_machine_learning::perceptron::Perceptron;
 use online_machine_learning::mnist;
 use rand::Rng;
+use std::boxed::Box;
 
-fn train(ith: usize, perceptrons: &mut [Perceptron], train_data: &[mnist::MNist]) {
+fn train(ith: usize, perceptrons: &mut [Box<LinearClassifier>], train_data: &[mnist::MNist]) {
     let mut correct = 0;
     let mut wrong = 0;
     for td in train_data.iter() {
@@ -24,7 +26,7 @@ fn train(ith: usize, perceptrons: &mut [Perceptron], train_data: &[mnist::MNist]
     println!("TRAIN: count {}: correct={} wrong={}", ith, correct, wrong);
 }
 
-fn run_test(perceptrons: &[Perceptron], test_data: &[mnist::MNist]) {
+fn run_test(perceptrons: &[Box<LinearClassifier>], test_data: &[mnist::MNist]) {
     let mut correct = 0;
     let mut wrong = 0;
     let mut matrix: [[usize; 10]; 10] = [[0; 10]; 10];
@@ -88,21 +90,16 @@ pub fn main() {
     let mut opts = Options::new();
     opts.optflag("", "bias", "use bias");
     opts.optflag("", "normalization", "use normalization");
+    opts.optflag("", "arow", "use arow. If not specified, perceptron is used.");
 
     let matches = match opts.parse(&args[1..]) {
         Ok(m) => { m }
         Err(f) => { panic!(f.to_string()) }
     };
 
-    let mut uses_bias = false;
-    if matches.opt_present("bias") {
-        uses_bias = true;
-    }
-
-    let mut uses_normalization = false;
-    if matches.opt_present("normalization") {
-        uses_normalization = true;
-    }
+    let uses_bias = matches.opt_present("bias");
+    let uses_normalization = matches.opt_present("normalization");
+    let uses_arow = matches.opt_present("arow");
 
     if matches.free.len() < 4 {
         println!("{} (options...) <train_image_file> <train_label_file> <test_image_file> <test_label_file>", args[0]);
@@ -132,10 +129,14 @@ pub fn main() {
         normalize_train_test(&mut train_data, &mut test_data);
     }
 
-    let mut perceptrons = std::vec::Vec::new();
+    let mut perceptrons = std::vec::Vec::<Box<LinearClassifier>>::new();
     for _ in 0..10 {
         let n = (28 * 28) + (if uses_bias { 1 } else { 0 });
-        perceptrons.push(Perceptron::new(n));
+        if uses_arow {
+            perceptrons.push(Box::new(Arow::new(n)));
+        } else {
+            perceptrons.push(Box::new(Perceptron::new(n)));
+        }
     }
 
     for cnt in 0..100 {
