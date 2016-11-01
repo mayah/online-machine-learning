@@ -4,6 +4,7 @@ extern crate getopts;
 
 use getopts::Options;
 use online_machine_learning::arow::Arow;
+use online_machine_learning::logistic::LogisticRegression;
 use online_machine_learning::linear_classifier::LinearClassifier;
 use online_machine_learning::perceptron::Perceptron;
 use online_machine_learning::svm::SVM;
@@ -91,7 +92,7 @@ pub fn main() {
     let mut opts = Options::new();
     opts.optflag("", "bias", "use bias");
     opts.optflag("", "normalization", "use normalization");
-    opts.optopt("t", "type", "classifier type. perceptron, svm, or arow. default is perceptron", "TYPE");
+    opts.optopt("t", "type", "classifier type. perceptron, svm, logistic, or arow. default is perceptron", "TYPE");
 
     let matches = match opts.parse(&args[1..]) {
         Ok(m) => { m }
@@ -137,6 +138,7 @@ pub fn main() {
             "perceptron" => Box::new(Perceptron::new(n)),
             "arow" => Box::new(Arow::new(n)),
             "svm" => Box::new(SVM::new(n)),
+            "logistic" => Box::new(LogisticRegression::new(n)),
             _ => {
                 assert!(false);
                 unreachable!()
