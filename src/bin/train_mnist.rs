@@ -131,7 +131,7 @@ pub fn main() {
         normalize_train_test(&mut train_data, &mut test_data);
     }
 
-    let mut perceptrons = std::vec::Vec::<Box<LinearClassifier>>::new();
+    let mut classifiers = std::vec::Vec::<Box<LinearClassifier>>::new();
     for _ in 0..10 {
         let n = (28 * 28) + (if uses_bias { 1 } else { 0 });
         let classifier: Box<LinearClassifier> = match classifier_type.as_ref() {
@@ -145,16 +145,16 @@ pub fn main() {
             }
         };
 
-        perceptrons.push(classifier);
+        classifiers.push(classifier);
     }
 
     for cnt in 0..100 {
         if cnt % 5 == 0 {
-            run_test(&perceptrons, &test_data)
+            run_test(&classifiers, &test_data)
         }
 
-        train(cnt, &mut perceptrons, &train_data);
+        train(cnt, &mut classifiers, &train_data);
     }
 
-    run_test(&perceptrons, &test_data);
+    run_test(&classifiers, &test_data);
 }
